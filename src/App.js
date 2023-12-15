@@ -1,57 +1,47 @@
-
+import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+
+import UploadImage from './components/UploadImage.js';
+import Navbar from './components/Navbar.js';
+import UploadSuccess from './components/UploadSuccess.js';
 import NFTGrid from './components/NFTGrid.js';
 import NFTDetail from './components/NFTDetail.js';
 
-import Navbar from './components/Navbar.js';
-import UploadSuccess from './components/UploadSuccess.js';
-import UploadImage from './components/UploadImage.js';
-
-
-
 function App() {
-  // 维护了组件内部的状态，数组里包含值和改变这个值的方法
-  const [walletAddress, setWalletAddress] = useState('');
+  const [walletAddress, setWallet] = useState("");
 
-  // 每次页面加载都会调用
   useEffect(() => {
-    // getWalletAddress(); //一进来自动连接上
     addWalletListener();
-  },[]);
+  }, []);
 
-  // 监听钱包地址
-  function addWalletListener(){
-    if(window.ethereum){
-      window.ethereum.on('accountsChanged', (accounts) => {
-        if(accounts.length > 0){
-          const account = accounts[0];
-          setWalletAddress(account);
+  function addWalletListener() {
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        if (accounts.length > 0) {
+          setWallet(accounts[0]);
         } else {
-          setWalletAddress('');
+          setWallet("");
         }
       });
-    }
+    }   
   }
 
-  // 获取钱包地址
-  async function getWalletAddress() {
-    if(window.ethereum){
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' });
-      const account = accounts[0];
-      setWalletAddress(account);
-    } else {
-      alert("Please install Metamask");
+  const getWalletAddress = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setWallet(accounts[0]); // Set the first account as the connected account
+      } catch (error) {
+        console.error('Error connecting to wallet:', error);
+      }
     }
-  }
+  };
 
   return (
     <div id="container">
       <Router>
-        <Navbar onConnectWallet={getWalletAddress} 
-          walletAddress={walletAddress}/>
+        <Navbar onConnectWallet={getWalletAddress} address={walletAddress} />
 
         <Routes>
           <Route path="/create-nft" exact element={<UploadImage address={walletAddress}/>} />
@@ -60,8 +50,8 @@ function App() {
           <Route path="/nft-detail/:tokenId" element={<NFTDetail />} />
         </Routes>
       </Router>
-    </div>
+    </div> 
   );
-}
+};
 
 export default App;
